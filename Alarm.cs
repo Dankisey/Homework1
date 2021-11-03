@@ -8,9 +8,11 @@ using UnityEngine;
 public class Alarm : MonoBehaviour
 {
     [SerializeField] private float _volumeStep;
+    [SerializeField] private float _secondsStep;
 
     private bool _robberInside = false;
     private AudioSource _audioSource;
+    private Coroutine _currentCoroutine = null;
 
     private void Awake()
     {
@@ -20,46 +22,58 @@ public class Alarm : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        _robberInside = !_robberInside;   
+
         if (collision.TryGetComponent<Robber>(out Robber robber))
         {
             if (_robberInside)           
                 StartAlarm();           
-            else
-                EndAlarm();
+            else        
+                EndAlarm();         
         }
     }
 
     private void StartAlarm()
     {
-        _audioSource.Play();
-    
-        StartCoroutine(UpVolume());
+        if (_currentCoroutine != null)
+            StopCoroutine(_currentCoroutine);
+
+        _currentCoroutine = StartCoroutine(UpVolume());
     }
 
     private void EndAlarm()
     {
-        StartCoroutine(DownVolume());
+        if (_currentCoroutine != null)
+            StopCoroutine(_currentCoroutine);
 
-        _audioSource.Pause();
+        _currentCoroutine = StartCoroutine(DownVolume());       
     }
 
     private IEnumerator UpVolume()
     {
-        while(_audioSource.volume < 1)
+        var waitForSecondsStep = new WaitForSeconds(_secondsStep);
+
+        _audioSource.Play();
+
+        while (_audioSource.volume < 1)
         {
             _audioSource.volume += _volumeStep;
 
-            yield return null;
+            yield return waitForSecondsStep;
         }
     }
 
     private IEnumerator DownVolume()
     {
+        var waitForSecondsStep = new WaitForSeconds(_secondsStep);
+
         while (_audioSource.volume > 0)
         {
             _audioSource.volume -= _volumeStep;
 
-            yield return null;
+            yield return waitForSecondsStep;
         }
+
+        _audioSource.Pause();
     }
 }
