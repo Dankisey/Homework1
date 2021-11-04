@@ -10,7 +10,7 @@ public class Alarm : MonoBehaviour
     [SerializeField] private float _volumeStep;
     [SerializeField] private float _secondsStep;
 
-    private bool _robberInside = false;
+    private bool _robberIsInside = false;
     private AudioSource _audioSource;
     private Coroutine _currentCoroutine = null;
 
@@ -18,62 +18,58 @@ public class Alarm : MonoBehaviour
     {
         _audioSource = GetComponent<AudioSource>();
         _audioSource.volume = 0;
-    }
+    }   
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        _robberInside = !_robberInside;   
+        _robberIsInside = !_robberIsInside;
 
         if (collision.TryGetComponent<Robber>(out Robber robber))
         {
-            if (_robberInside)           
-                StartAlarm();           
-            else        
-                EndAlarm();         
+            if (_robberIsInside)
+                StartAlarm();
+            else
+                EndAlarm();
         }
     }
 
     private void StartAlarm()
     {
         if (_currentCoroutine != null)
+        {
             StopCoroutine(_currentCoroutine);
+            _volumeStep *= -1;
+        }
 
-        _currentCoroutine = StartCoroutine(UpVolume());
+        _currentCoroutine = StartCoroutine(ChangeVolume());
     }
 
     private void EndAlarm()
     {
         if (_currentCoroutine != null)
+        {
             StopCoroutine(_currentCoroutine);
+            _volumeStep *= -1;
+        }
 
-        _currentCoroutine = StartCoroutine(DownVolume());       
+        _currentCoroutine = StartCoroutine(ChangeVolume());       
     }
 
-    private IEnumerator UpVolume()
+    private IEnumerator ChangeVolume()
     {
         var waitForSecondsStep = new WaitForSeconds(_secondsStep);
 
-        _audioSource.Play();
+        if (_robberIsInside)
+            _audioSource.Play();
 
-        while (_audioSource.volume < 1)
+        while (_audioSource.volume > 0 || _audioSource.volume < 1)
         {
             _audioSource.volume += _volumeStep;
 
             yield return waitForSecondsStep;
         }
-    }
 
-    private IEnumerator DownVolume()
-    {
-        var waitForSecondsStep = new WaitForSeconds(_secondsStep);
-
-        while (_audioSource.volume > 0)
-        {
-            _audioSource.volume -= _volumeStep;
-
-            yield return waitForSecondsStep;
-        }
-
-        _audioSource.Pause();
+        if (_robberIsInside == false)       
+            _audioSource.Pause();        
     }
 }
