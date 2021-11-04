@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider2D))]
@@ -11,6 +10,7 @@ public class Alarm : MonoBehaviour
     [SerializeField] private float _secondsStep;
 
     private bool _robberIsInside = false;
+
     private AudioSource _audioSource;
     private Coroutine _currentCoroutine = null;
 
@@ -18,18 +18,25 @@ public class Alarm : MonoBehaviour
     {
         _audioSource = GetComponent<AudioSource>();
         _audioSource.volume = 0;
-    }   
+    }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        _robberIsInside = !_robberIsInside;
+        _robberIsInside = true;
 
         if (collision.TryGetComponent<Robber>(out Robber robber))
         {
-            if (_robberIsInside)
-                StartAlarm();
-            else
-                EndAlarm();
+            StartAlarm();
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        _robberIsInside = false;
+
+        if (collision.TryGetComponent<Robber>(out Robber robber))
+        {          
+            EndAlarm();
         }
     }
 
