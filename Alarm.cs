@@ -26,7 +26,7 @@ public class Alarm : MonoBehaviour
 
         if (collision.TryGetComponent<Robber>(out Robber robber))
         {
-            StartAlarm();
+            ChangeActivity();
         }
     }
 
@@ -36,11 +36,11 @@ public class Alarm : MonoBehaviour
 
         if (collision.TryGetComponent<Robber>(out Robber robber))
         {          
-            EndAlarm();
+            ChangeActivity();
         }
     }
 
-    private void StartAlarm()
+    private void ChangeActivity()
     {
         if (_currentCoroutine != null)
         {
@@ -49,17 +49,6 @@ public class Alarm : MonoBehaviour
         }
 
         _currentCoroutine = StartCoroutine(ChangeVolume());
-    }
-
-    private void EndAlarm()
-    {
-        if (_currentCoroutine != null)
-        {
-            StopCoroutine(_currentCoroutine);
-            _volumeStep *= -1;
-        }
-
-        _currentCoroutine = StartCoroutine(ChangeVolume());       
     }
 
     private IEnumerator ChangeVolume()
